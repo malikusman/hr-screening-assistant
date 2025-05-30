@@ -1,0 +1,7 @@
+{
+    "job_id": "job_1",
+    "title": "Software Engineer",
+    "required_skills": ["Python", "SQL", "Django"],
+    "min_experience_years": 3,
+    "education": "BS Computer Science or equivalent"
+}

@@ -1,0 +1,37 @@
+[
+    {
+        "id": "candidate_1",
+        "name": "Alice Smith",
+        "skills": ["Python", "JavaScript", "SQL"],
+        "experience_years": 3,
+        "education": "BS Computer Science"
+    },
+    {
+        "id": "candidate_2",
+        "name": "Bob Johnson",
+        "skills": ["Java", "Python"],
+        "experience_years": 5,
+        "education": "MS Software Engineering"
+    },
+    {
+        "id": "candidate_3",
+        "name": "Clara Lee",
+        "skills": ["Python", "C++", "AWS"],
+        "experience_years": 2,
+        "education": "BS Data Science"
+    },
+    {
+        "id": "candidate_4",
+        "name": "David Brown",
+        "skills": ["JavaScript", "React"],
+        "experience_years": 4,
+        "education": "BS Computer Science"
+    },
+    {
+        "id": "candidate_5",
+        "name": "Emma Wilson",
+        "skills": ["Python", "SQL", "Django"],
+        "experience_years": 3,
+        "education": "BS Information Technology"
+    }
+]
