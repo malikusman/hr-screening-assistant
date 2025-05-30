@@ -1,2 +1,21 @@
 Authentication
 Authorization
+
+What is pipe in langchain chain = prompt | llm
+
+
+
+
+Questions 
+
+do we need to save python-dotenv in requirements.txt
+can we use 4o-mini model?
+
+(venv) usman@Ihsanulhaqs-MacBook-Pro A2A % curl -X POST http://localhost:5001/parse -H "Content-Type: application/json" -d '{
+    "task_id": "test_2",
+    "data": {
+        "resume": "Name: John Doe\nSkills: Python, Java, AWS\nExperience: 4 years as Software Engineer\nEducation: MS Computer Science, XYZ University"   
+    }                                                 
+}'                                
+{"error":"Expecting value: line 1 column 1 (char 0)"}
+(venv) usman@Ihsanulhaqs-MacBook-Pro A2A % 
