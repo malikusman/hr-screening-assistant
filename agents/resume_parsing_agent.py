@@ -39,7 +39,7 @@ chain = prompt | llm
 def agent_card():
     return jsonify({
         "agent_id": "resume-parsing-agent",
-        "endpoint": "http://localhost:5001/parse",
+        "endpoint": "http://localhost:8001/resume",
         "capabilities": ["resume_parsing", "data_extraction"],
         "authentication": "none",  # Simplified for POC
         "input_formats": ["json"],
@@ -48,7 +48,7 @@ def agent_card():
     })
 
 # A2A Parse Endpoint
-@app.route("/parse", methods=["POST"])
+@app.route("/resume", methods=["POST"])
 def parse_resume():
     task = request.json
     if not task or "data" not in task or "resume" not in task["data"]:
@@ -71,4 +71,4 @@ def parse_resume():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001)  # Use port 5001 to avoid conflict with Host Agent
+    app.run(host="0.0.0.0", port=8001, debug=True)  # Use port 8001 to avoid conflict with Host Agent

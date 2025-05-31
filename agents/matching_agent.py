@@ -52,7 +52,7 @@ rag_chain = rag_prompt | llm
 def agent_card():
     return jsonify({
         "agent_id": "matching-agent",
-        "endpoint": "http://localhost:5002/match",
+        "endpoint": "http://localhost:8002/match",
         "capabilities": ["candidate_matching", "skill_ranking"],
         "authentication": "none",
         "input_formats": ["json"],
@@ -134,4 +134,4 @@ def match_candidates():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5002, debug=True)  # Added debug=True for better error messages
+    app.run(host="0.0.0.0", port=8002, debug=True)  # Added debug=True for better error messages

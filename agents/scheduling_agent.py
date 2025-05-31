@@ -22,14 +22,15 @@ llm = ChatOpenAI(
 )
 
 # Define prompt for scheduling interviews
+# Define prompt for scheduling interviews
 prompt = PromptTemplate(
-    input_variables=["candidates", "job_title"],
+    input_variables=["candidates", "job_title", "start_date"],
     template="""
     You are an HR scheduling assistant for the job: {job_title}.
     Given the following ranked candidates with their match scores:
     {candidates}
 
-    Suggest interview time slots for the top candidates (score >= 80) over the next 3 days, starting from tomorrow at 9 AM. Use 30-minute slots, avoiding overlaps. Return a JSON object with a list of schedules in this format:
+    Suggest interview time slots for the top candidates (score >= 80) over the next 3 days, starting from {start_date} at 9 AM. Use 30-minute slots, avoiding overlaps. Return a JSON object with a list of schedules in this format:
     [
         {{"candidate_id": "<name>", "score": <int>, "interview_time": "YYYY-MM-DD HH:MM", "duration": "30 minutes"}},
         ...
@@ -58,7 +59,7 @@ def clean_json_response(response_text):
 def agent_card():
     return jsonify({
         "agent_id": "scheduling-agent",
-        "endpoint": "http://localhost:5003/schedule",
+        "endpoint": "http://localhost:8004/schedule",
         "capabilities": ["interview_scheduling", "time_allocation"],
         "authentication": "none",  # Simplified for POC
         "input_formats": ["json"],
@@ -79,9 +80,15 @@ def schedule_interviews():
         candidates_text = "\n".join(
             [f"{c['candidate_id']}: Score {c['score']}" for c in ranked_candidates]
         )
+        # Calculate tomorrow's date
+        start_date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
 
         # Run LangChain to generate schedules
-        result = chain.invoke({"candidates": candidates_text, "job_title": job_title})
+        result = chain.invoke({
+            "candidates": candidates_text,
+            "job_title": job_title,
+            "start_date": start_date
+        })
         
         # Clean the response before parsing
         cleaned_response = clean_json_response(result.content)
@@ -103,4 +110,4 @@ def schedule_interviews():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5003, debug=True)  # Use port 5003, debug=True for better errors
+    app.run(host="0.0.0.0", port=8004, debug=True)  # Use port 5003, debug=True for better errors
