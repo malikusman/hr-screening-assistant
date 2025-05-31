@@ -1,16 +1,17 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response, send_from_directory
 from langgraph.graph import StateGraph, END
 from typing import Dict, List, Any
 import requests
 import json
 import os
 from dotenv import load_dotenv
+import time
 
 # Load environment variables
 load_dotenv()
 
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../static')
 
 # Define state for LangGraph
 class WorkflowState(Dict):
@@ -19,9 +20,11 @@ class WorkflowState(Dict):
     ranked_candidates: List[Dict]
     schedules: List[Dict]
     job_title: str
+    status: str
 
 # Define nodes for LangGraph
 def parse_resumes(state: WorkflowState) -> WorkflowState:
+    state["status"] = "Parsing resumes..."
     parsed_resumes = []
     for resume in state["resumes"]:
         try:
@@ -46,6 +49,7 @@ def parse_resumes(state: WorkflowState) -> WorkflowState:
     return state
 
 def match_candidates(state: WorkflowState) -> WorkflowState:
+    state["status"] = "Matching candidates..."
     response = requests.post(
         "http://localhost:8002/match",
         json={
@@ -60,6 +64,7 @@ def match_candidates(state: WorkflowState) -> WorkflowState:
     return state
 
 def schedule_interviews(state: WorkflowState) -> WorkflowState:
+    state["status"] = "Scheduling interviews..."
     response = requests.post(
         "http://localhost:8004/schedule",
         json={
@@ -87,8 +92,13 @@ workflow.add_edge("schedule", END)
 workflow.set_entry_point("parse")
 app_graph = workflow.compile()
 
+# Serve frontend - fix the path here too
+@app.route('/')
+def serve_frontend():
+    return send_from_directory('../static', 'index.html')
+
 # A2A Agent Card
-@app.route("/.well-known/agent.json")
+@app.route("/.well-known")
 def agent_card():
     return jsonify({
         "agent_id": "host-agent",
@@ -99,6 +109,19 @@ def agent_card():
         "output_formats": ["json"],
         "description": "Coordinates resume screening tasks among agents."
     })
+
+# SSE for real-time updates
+@app.route('/events')
+def events():
+    def stream():
+        state = {"status": "Waiting for task..."}
+        while True:
+            yield f"data: {state['status']}\n\n"
+            time.sleep(1)
+            # Update status if workflow is running
+            if hasattr(app, 'current_state'):
+                state = app.current_state
+    return Response(stream(), mimetype='text/event-stream')
 
 # A2A Task Endpoint
 @app.route("/task", methods=["POST"])
@@ -113,15 +136,19 @@ def run_workflow():
             "job_title": task["data"]["job_title"],
             "parsed_resumes": [],
             "ranked_candidates": [],
-            "schedules": []
+            "schedules": [],
+            "status": "Starting workflow..."
         }
+        app.current_state = initial_state
         result = app_graph.invoke(initial_state)
+        app.current_state = {"status": "Workflow complete."}
         return jsonify({
             "task_id": task.get("task_id"),
             "result": {"schedules": result["schedules"]}
         })
     except Exception as e:
         print(f"Workflow error: {str(e)}")
+        app.current_state = {"status": f"Error: {str(e)}"}
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
