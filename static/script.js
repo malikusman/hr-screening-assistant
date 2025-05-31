@@ -2,12 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const resumeFile = document.getElementById('resumeFile');
     const submitBtn = document.getElementById('submitBtn');
     const statusDiv = document.getElementById('status');
+    const statusText = statusDiv.querySelector('span');
+    const spinner = document.getElementById('spinner');
     const resultsDiv = document.getElementById('results');
     const scheduleTable = document.getElementById('scheduleTable');
 
     // Enable submit button when file is selected
     resumeFile.addEventListener('change', () => {
         submitBtn.disabled = !resumeFile.files.length;
+        statusText.textContent = resumeFile.files.length ? 'Ready to process!' : 'Waiting for upload...';
     });
 
     // Handle form submission
@@ -15,7 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!resumeFile.files.length) return;
 
         submitBtn.disabled = true;
-        statusDiv.textContent = 'Uploading resumes...';
+        statusText.textContent = 'Uploading resumes...';
+        spinner.classList.remove('hidden');
         resultsDiv.classList.add('hidden');
         scheduleTable.innerHTML = '';
 
@@ -33,10 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
             // Start SSE for real-time updates
             const eventSource = new EventSource('/events');
             eventSource.onmessage = (event) => {
-                statusDiv.textContent = event.data;
+                statusText.textContent = event.data;
             };
             eventSource.onerror = () => {
-                statusDiv.textContent = 'Processing complete.';
+                statusText.textContent = 'Processing complete.';
+                spinner.classList.add('hidden');
                 eventSource.close();
             };
 
@@ -49,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (result.error) {
-                statusDiv.textContent = `Error: ${result.error}`;
+                statusText.textContent = `Error: ${result.error}`;
+                spinner.classList.add('hidden');
                 eventSource.close();
                 return;
             }
@@ -57,19 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // Display schedules
             result.result.schedules.forEach(schedule => {
                 const row = document.createElement('tr');
+                row.classList.add('hover:bg-gray-50', 'transition');
                 row.innerHTML = `
-                    <td class="py-2 px-4 border">${schedule.candidate_id}</td>
-                    <td class="py-2 px-4 border">${schedule.score}</td>
-                    <td class="py-2 px-4 border">${schedule.interview_time}</td>
-                    <td class="py-2 px-4 border">${schedule.duration}</td>
+                    <td class="py-3 px-6 border-b">${schedule.candidate_id}</td>
+                    <td class="py-3 px-6 border-b">${schedule.score}</td>
+                    <td class="py-3 px-6 border-b">${schedule.interview_time}</td>
+                    <td class="py-3 px-6 border-b">${schedule.duration}</td>
                 `;
                 scheduleTable.appendChild(row);
             });
             resultsDiv.classList.remove('hidden');
-            statusDiv.textContent = 'Schedules generated successfully.';
+            statusText.textContent = 'Schedules generated successfully!';
+            spinner.classList.add('hidden');
             eventSource.close();
         } catch (error) {
-            statusDiv.textContent = `Error: ${error.message}`;
+            statusText.textContent = `Error: ${error.message}`;
+            spinner.classList.add('hidden');
         } finally {
             submitBtn.disabled = false;
         }

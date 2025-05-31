@@ -4,38 +4,76 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR Screening Assistant</title>
-    <link href="/static/tailwind.output.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <link href="/static/tailwind.output.css" rel="stylesheet"> -->
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-2xl">
-        <h1 class="text-2xl font-bold mb-6 text-center">HR Automated Candidate Screening</h1>
-        
-        <!-- Resume Upload Form -->
-        <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Resumes (JSON)</label>
-            <input type="file" id="resumeFile" accept=".json" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-            <button id="submitBtn" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:bg-gray-400" disabled>Process Resumes</button>
+<body class="bg-gradient-to-br from-blue-50 to-gray-100 min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow-md py-4 px-6 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <svg class="h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M12 3v3m0 15v3m-9-9h3m15 0h-3m-6 6v-3m0-15v3m-9 9H3m15 0h3" />
+            </svg>
+            <h1 class="text-2xl font-bold text-gray-800">HR Screening Assistant</h1>
         </div>
-        
-        <!-- Real-Time Feedback -->
-        <div id="status" class="mb-6 text-sm text-gray-600"></div>
-        
-        <!-- Results Table -->
-        <div id="results" class="hidden">
-            <h2 class="text-lg font-semibold mb-4">Interview Schedules</h2>
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="py-2 px-4 border">Candidate</th>
-                        <th class="py-2 px-4 border">Score</th>
-                        <th class="py-2 px-4 border">Interview Time</th>
-                        <th class="py-2 px-4 border">Duration</th>
-                    </tr>
-                </thead>
-                <tbody id="scheduleTable"></tbody>
-            </table>
+        <span class="text-sm text-gray-500">Powered by xAI</span>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center py-8 px-4">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-3xl border border-gray-100">
+            <!-- Title -->
+            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Upload Candidate Resumes</h2>
+            
+            <!-- Resume Upload Form -->
+            <div class="mb-8">
+                <label class="block text-sm font-medium text-gray-700 mb-3">Select Resume File (JSON Format)</label>
+                <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition">
+                    <input type="file" id="resumeFile" accept=".json" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div class="text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-600">Drag and drop your resume JSON file here, or click to select</p>
+                    </div>
+                </div>
+                <button id="submitBtn" class="mt-4 w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition duration-200" disabled>Process Resumes</button>
+            </div>
+            
+            <!-- Real-Time Feedback -->
+            <div id="status" class="mb-8 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 flex items-center space-x-2">
+                <svg class="h-5 w-5 text-blue-500 animate-spin hidden" id="spinner" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Waiting for upload...</span>
+            </div>
+            
+            <!-- Results Table -->
+            <div id="results" class="hidden">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800">Interview Schedules</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse bg-white rounded-lg shadow-sm">
+                        <thead>
+                            <tr class="bg-blue-50 text-blue-800">
+                                <th class="py-3 px-6 border-b">Candidate</th>
+                                <th class="py-3 px-6 border-b">Score</th>
+                                <th class="py-3 px-6 border-b">Interview Time</th>
+                                <th class="py-3 px-6 border-b">Duration</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scheduleTable" class="text-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white shadow-inner py-4 px-6 text-center text-gray-500 text-sm">
+        &copy; 2025 HR Screening Assistant. All rights reserved.
+    </footer>
+
     <script src="/static/script.js"></script>
 </body>
 </html>
